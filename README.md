@@ -10,6 +10,8 @@ Quick start:
 
 If your LD06 is not at `dev/ttyUSB0`, you have to edit this in the Python script.
 
+![Screenshot](./screenshot.png)
+
 ## Why?
 
 I want to test my LD06 on my desktop because I don't have the Raspberry Pi, yet.

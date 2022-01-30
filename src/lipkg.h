@@ -14,7 +14,8 @@
 #include <vector>
 #include <array>
 #include <iostream>
-#include <sensor_msgs/LaserScan.h>
+//#include <sensor_msgs/LaserScan.h>
+#include "LaserScan.h"
 
 #define ANGLE_TO_RADIAN(angle) ((angle)*3141.59/180000)
 
@@ -81,7 +82,7 @@ public:
 	const std::array<PointData, POINT_PER_PACK>& GetPkgData(void);/*original data package*/
 	bool Parse(const uint8_t* data , long len);/*parse single packet*/
 	bool AssemblePacket();/*combine stantard data into data frames and calibrate*/
-	sensor_msgs::LaserScan GetLaserScan() {return output;}
+	const sensor_msgs::LaserScan& GetLaserScan() {return output;}
 	void SetLidarFrame(const std::string lidar_frame) { mLidarFrame = lidar_frame;};
 private:
 	uint16_t mTimestamp;
@@ -93,6 +94,7 @@ private:
 	bool mIsPkgReady;
 	bool mFrameReady;
 	sensor_msgs::LaserScan output;
+	size_t outputCapacity;
 	std::string mLidarFrame;
 	void ToLaserscan(std::vector<PointData> src);
 };

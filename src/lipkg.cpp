@@ -47,6 +47,9 @@ LiPkg::LiPkg():
 	mFrameReady(false),
 	mIsPkgReady(false)
 {
+	output.ranges = NULL;
+	output.intensities = NULL;
+	outputCapacity = 0;
 }
 
 double LiPkg::GetSpeed(void)
@@ -225,8 +228,9 @@ void LiPkg::ToLaserscan(std::vector<PointData> src)
   angle_increment = ANGLE_TO_RADIAN(mSpeed/4500);
   /*Calculate the number of scanning points*/
   unsigned int beam_size = ceil((angle_max - angle_min) / angle_increment);
-  output.header.stamp = ros::Time::now();
-  output.header.frame_id = mLidarFrame;
+  //output.header.stamp = ros::Time::now();
+  clock_gettime(CLOCK_MONOTONIC, &output.header.stamp);
+  //output.header.frame_id = mLidarFrame;
   output.angle_min = angle_min;
   output.angle_max = angle_max;
   output.range_min = range_min;
@@ -236,14 +240,27 @@ void LiPkg::ToLaserscan(std::vector<PointData> src)
   output.scan_time = 0.0;
   
   /*First fill all the data with Nan*/
-  output.ranges.assign(beam_size, std::numeric_limits<float>::quiet_NaN());
-  output.intensities.assign(beam_size, std::numeric_limits<float>::quiet_NaN());
+  //output.ranges.assign(beam_size, std::numeric_limits<float>::quiet_NaN());
+  //output.intensities.assign(beam_size, std::numeric_limits<float>::quiet_NaN());
+  if (beam_size > outputCapacity) {
+	  output.ranges = (float*)realloc(output.ranges, sizeof(*output.ranges)*beam_size);
+	  output.intensities = (float*)realloc(output.intensities, sizeof(*output.intensities)*beam_size);
+	  outputCapacity = beam_size;
+  }
+  if (!output.ranges || !output.intensities)
+	return;
+  output.beam_size = beam_size;
+  for (size_t i = 0; i<beam_size; i++) {
+	  output.ranges[i] = std::numeric_limits<float>::quiet_NaN();
+	  output.intensities[i] = std::numeric_limits<float>::quiet_NaN();
+  }
 
   for (auto point : src)
   {
 	float range = point.distance ;
     float angle = ANGLE_TO_RADIAN(point.angle);
 
+	//FIXME This doesn't seem smart. We should rather adjust the angle_increment.
     int index = (int)((output.angle_max - angle) / output.angle_increment);
 
     if (index >= 0 && index < beam_size)

@@ -1,0 +1,4 @@
+*.so
+*.bak
+*.pyc
+.vscode/
